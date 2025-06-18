@@ -1,0 +1,46 @@
+# =======================
+# Global
+# =======================
+*.log
+*.env
+*.env.*
+.DS_Store
+*.pyc
+__pycache__/
+.vscode/
+.idea/
+*.sqlite3
+
+# =======================
+# Python (backend/)
+# =======================
+/backend/__pycache__/
+/backend/*.py[cod]
+/backend/.venv/
+/backend/env/
+/backend/venv/
+/backend/.mypy_cache/
+/backend/.pytest_cache/
+/backend/.coverage
+/backend/htmlcov/
+/backend/.cache/
+/backend/.env
+/backend/tool/*
+
+# =======================
+# Node.js / Next.js (frontend/)
+# =======================
+/frontend/node_modules/
+/frontend/.next/
+/frontend/out/
+/frontend/.env
+/frontend/.env.* 
+/frontend/coverage/
+/frontend/package-lock.json
+/frontend/yarn.lock
+
+# =======================
+# OS-specific
+# =======================
+Thumbs.db
+ehthumbs.db

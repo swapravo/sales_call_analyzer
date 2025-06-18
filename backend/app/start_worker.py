@@ -1,0 +1,11 @@
+import subprocess
+import os
+
+def start_worker():
+    # This will start the worker in the background
+    subprocess.Popen([
+        "celery", "-A", "saas.app.audio_tasks", "worker", "--loglevel=info", "--concurrency=1"
+    ], cwd=os.path.dirname(__file__))
+
+if __name__ == "__main__":
+    start_worker()

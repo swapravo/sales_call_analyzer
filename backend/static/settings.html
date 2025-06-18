@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Settings</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        #message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+    </style>
+</head>
+<body>
+    <h1>User Settings</h1>
+    
+    <div class="section">
+        <h2>Profile Information</h2>
+        <div id="profile-info">
+            <p>Loading...</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Update Profile</h2>
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email">
+        </div>
+        <div class="form-group">
+            <label for="name">Name:</label>
+            <input type="text" id="name">
+        </div>
+        <div class="form-group">
+            <label for="word-limit">Minutes:</label>
+            <input type="number" id="word-limit" readonly>
+            <button type="button" onclick="togglePlans()" style="margin-top: 10px;">Buy More Minutes</button>
+        </div>
+        <div id="pricing-section" class="section" style="display: none;">
+    <h2>Choose a Plan</h2>
+    <div class="form-group">
+        <label>
+            <input type="radio" name="plan" value="INR_900_1000" checked>
+            ₹900 for 1000 minutes
+        </label><br>
+        <label>
+            <input type="radio" name="plan" value="USD_10_1000">
+            $10 for 1000 minutes
+        </label>
+    </div>
+    <button onclick="initiatePayment()">Proceed to Pay</button>
+    <div id="payment-message" class="message"></div>
+</div>
+
+
+        <button onclick="updateProfile()">Update Profile</button>
+        <div id="profile-message" class="message"></div>
+    </div>
+
+    <div class="section">
+        <h2>Change Password</h2>
+        <div class="form-group">
+            <label for="current-password">Current Password:</label>
+            <input type="password" id="current-password">
+        </div>
+        <div class="form-group">
+            <label for="new-password">New Password:</label>
+            <input type="password" id="new-password">
+        </div>
+        <div class="form-group">
+            <label for="confirm-password">Confirm New Password:</label>
+            <input type="password" id="confirm-password">
+        </div>
+        <button onclick="changePassword()">Change Password</button>
+        <div id="password-message" class="message"></div>
+    </div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <script>
+        let token = localStorage.getItem('token');
+        
+        // Load profile info on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token) {
+                alert('Please login first');
+                window.location.href = '/';
+                return;
+            }
+            fetchProfile();
+        });
+
+        async function fetchProfile() {
+            try {
+                const response = await fetch('/settings', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch profile');
+                }
+                
+                const data = await response.json();
+                document.getElementById('profile-info').innerHTML = `
+                    <p><strong>Name:</strong> ${data.name || 'Not set'}</p>
+                    <p><strong>Email:</strong> ${data.email}</p>
+                    <p><strong>Minutes:</strong> ${data.minutes}</p>
+                `;
+                
+                // Pre-fill the form fields
+                document.getElementById('email').value = data.email;
+                document.getElementById('name').value = data.name || '';
+                document.getElementById('word-limit').value = data.minutes;
+                
+            } catch (error) {
+                document.getElementById('profile-info').innerHTML = `
+                    <p class="error">Error loading profile: ${error.message}</p>
+                `;
+            }
+        }
+
+        async function updateProfile() {
+            const email = document.getElementById('email').value;
+            const name = document.getElementById('name').value;
+            const wordLimit = document.getElementById('word-limit').value;
+            
+            try {
+                const response = await fetch('/settings', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        name: name,
+                        minutes: parseInt(wordLimit)
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to update profile');
+                }
+
+                const result = await response.json();
+                showMessage('profile-message', 'Profile updated successfully!', true);
+                
+                // Only update token if email changed
+                if (email !== document.getElementById('email').defaultValue) {
+                    // Don't try to get new token automatically - just prompt user to login again
+                    showMessage('profile-message', 'Email changed. Please login again with your new email.', true);
+                    setTimeout(() => {
+                        logout();
+                    }, 2000);
+                    return;
+                }
+                
+                fetchProfile();
+            } catch (error) {
+                showMessage('profile-message', `Error: ${error.message}`, false);
+            }
+        }
+
+        async function changePassword() {
+            const currentPassword = document.getElementById('current-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            
+            if (newPassword !== confirmPassword) {
+                showMessage('password-message', 'New passwords do not match', false);
+                return;
+            }
+            
+            try {
+                const response = await fetch('/settings/change-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        current_password: currentPassword,
+                        new_password: newPassword
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Password change failed');
+                }
+                
+                showMessage('password-message', 'Password changed successfully!', true);
+                // Clear password fields
+                document.getElementById('current-password').value = '';
+                document.getElementById('new-password').value = '';
+                document.getElementById('confirm-password').value = '';
+            } catch (error) {
+                showMessage('password-message', `Error: ${error.message}`, false);
+            }
+        }
+
+        function showMessage(elementId, message, isSuccess) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = isSuccess ? 'success' : 'error';
+            element.style.display = 'block';
+            
+            // Hide message after 5 seconds
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 5000);
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/static/login.html';
+        }
+        function togglePlans() {
+    const section = document.getElementById('pricing-section');
+    section.style.display = section.style.display === 'none' ? 'block' : 'none';
+}
+
+async function initiatePayment() {
+    const selectedPlan = document.querySelector('input[name="plan"]:checked').value;
+    let [currency, amountRaw, minutes] = selectedPlan.split('_');
+    const amount = parseInt(currency === 'USD' ? amountRaw * 100 : amountRaw * 100); // cents/paise
+
+    try {
+        const res = await fetch('/create-payment-order', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ amount, currency })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Failed to create order');
+
+        const options = {
+            key: 'rzp_live_IyaF7ZcsTcKpgL',  // Replace in deployment using env var
+            amount: data.amount,
+            currency: data.currency,
+            order_id: data.order_id,
+            name: 'Call Support',
+            description: `${minutes} minute package`,
+            handler: async function (response) {
+                const verifyRes = await fetch('/verify-payment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_signature: response.razorpay_signature
+                    })
+                });
+
+                const verifyData = await verifyRes.json();
+                if (!verifyRes.ok) throw new Error(verifyData.detail || 'Verification failed');
+
+                showMessage('payment-message', verifyData.message, true);
+                fetchProfile();  // Update Minutes
+            },
+            theme: {
+                color: '#4CAF50'
+            }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
+    } catch (error) {
+        showMessage('payment-message', `Payment Error: ${error.message}`, false);
+    }
+}
+
+function goToSettings() {
+    window.location.href = '/settings-page';  // Changed from '/static/settings.html'
+}
+
+    </script>
+</body>
+</html>

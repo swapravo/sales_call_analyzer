@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      cursor: pointer;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <h1>Welcome to Your Dashboard</h1>
+  
+  <div class="card">
+    <h2>User Actions</h2>
+    <button onclick="goToSettings()">Go to Settings</button>
+    <button onclick="goToUpload()">Upload Files</button>
+    <button onclick="goToTranscriptions()">View Transcriptions</button>
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = '/static/login.html';
+      }
+    });
+
+    function goToSettings() {
+      window.location.href = '/static/settings.html';
+    }
+
+    function goToUpload() {
+      window.location.href = '/upload';
+    }
+
+    function goToTranscriptions() {
+      window.location.href = '/transcriptions';
+    }
+
+    function logout() {
+      localStorage.removeItem('token');
+      window.location.href = '/static/login.html';
+    }
+  </script>
+</body>
+</html> 

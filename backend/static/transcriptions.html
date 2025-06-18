@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Audio Transcriptions</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            white-space: nowrap;
+        }
+        th {
+            background-color: #2c3e50;
+            color: white;
+            position: sticky;
+            top: 0;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .pagination p {
+            margin: 0 15px;
+            font-weight: bold;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: all 0.3s;
+            margin: 0 5px;
+        }
+        a:hover {
+            background-color: #3498db;
+            color: white;
+        }
+        .hidden {
+            display: none;
+        }
+        /* Responsive table styling */
+        @media (max-width: 1200px) {
+            .table-container {
+                font-size: 0.9em;
+            }
+        }
+        @media (max-width: 768px) {
+            .table-container {
+                font-size: 0.8em;
+                padding: 10px;
+            }
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3498db;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Audio Transcriptions</h1>
+    <div class="table-container">
+        <table id="transcription-table">
+            <!-- Table will be populated by JavaScript -->
+        </table>
+    </div>
+    <div class="pagination">
+        <a href="#" id="prev-link" class="hidden">Previous</a>
+        <p id="page-info">Page 1</p>
+        <a href="#" id="next-link">Next</a>
+    </div>
+
+    <script>
+        // Parse the current page from the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentPage = parseInt(urlParams.get('page')) || 1;
+
+        // Update the page info
+        document.getElementById('page-info').textContent = `Page ${currentPage}`;
+
+        // Set up navigation links
+        document.getElementById('prev-link').href = `/transcriptions?page=${currentPage - 1}`;
+        document.getElementById('next-link').href = `/transcriptions?page=${currentPage + 1}`;
+
+        // Hide "Previous" link if on the first page
+        if (currentPage <= 1) {
+            document.getElementById('prev-link').classList.add('hidden');
+        }
+
+        // Update the page info and navigation
+        function updatePagination(data) {
+            const pageInfo = document.getElementById('page-info');
+            const prevLink = document.getElementById('prev-link');
+            const nextLink = document.getElementById('next-link');
+
+            pageInfo.textContent = `Page ${data.current_page} of ${data.total_pages}`;
+            
+            // Update navigation links
+            prevLink.href = `/transcriptions?page=${data.current_page - 1}`;
+            nextLink.href = `/transcriptions?page=${data.current_page + 1}`;
+
+            // Show/hide navigation links
+            prevLink.classList.toggle('hidden', data.current_page <= 1);
+            nextLink.classList.toggle('hidden', data.current_page >= data.total_pages);
+        }
+
+        // Function to render the table
+        function renderTable(data) {
+            const table = document.getElementById('transcription-table');
+            table.innerHTML = '';
+            
+            // Create header row
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            
+            data.headers.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+            
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            
+            // Create data rows
+            const tbody = document.createElement('tbody');
+            data.table_data.forEach(row => {
+                const tr = document.createElement('tr');
+                row.forEach(cell => {
+                    const td = document.createElement('td');
+                    td.textContent = cell;
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+            
+            table.appendChild(tbody);
+            
+            // Update pagination
+            updatePagination(data);
+        }
+
+        // Fetch and display the transcription table
+        fetch(`/api/transcriptions?page=${currentPage}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        // Redirect to login if unauthorized
+                        window.location.href = '/login';
+                        return;
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                renderTable(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    </script>
+</body>
+</html> 

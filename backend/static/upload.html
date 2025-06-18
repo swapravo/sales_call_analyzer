@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Upload Audio Files or Folders</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #fafafa;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    .upload-container {
+      border: 2px dashed #aaa;
+      padding: 30px;
+      text-align: center;
+      border-radius: 10px;
+      background-color: #fff;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 20px;
+    }
+
+    input[type="file"] {
+      margin-top: 10px;
+    }
+
+    .file-list {
+      margin-top: 20px;
+      background-color: #f9f9f9;
+      border-radius: 6px;
+      padding: 15px;
+      border: 1px solid #ddd;
+    }
+
+    .file-item {
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+    }
+
+    .file-item:last-child {
+      border-bottom: none;
+    }
+
+    button {
+      margin-top: 20px;
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+
+    #message {
+      margin-top: 20px;
+      padding: 10px;
+      border-radius: 4px;
+      display: none;
+    }
+
+    .success {
+      background-color: #dff0d8;
+      color: #3c763d;
+    }
+
+    .error {
+      background-color: #f2dede;
+      color: #a94442;
+    }
+  </style>
+</head>
+<body>
+  <h1>Upload Audio Files or Folders</h1>
+
+  <div class="upload-container">
+    <form id="uploadForm" enctype="multipart/form-data">
+      <label>Select Individual Files:</label>
+      <input type="file" name="files" id="fileInput" multiple>
+
+      <label>Or Select a Folder:</label>
+      <input type="file" name="files" id="folderInput" webkitdirectory directory multiple>
+
+      <button type="submit">Upload</button>
+    </form>
+
+    <div class="file-list" id="fileList"></div>
+    <div id="message"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('uploadForm');
+    const fileInput = document.getElementById('fileInput');
+    const folderInput = document.getElementById('folderInput');
+    const fileList = document.getElementById('fileList');
+    const message = document.getElementById('message');
+
+    function displayFiles(files) {
+      fileList.innerHTML = '';
+      for (const file of files) {
+        const div = document.createElement('div');
+        div.classList.add('file-item');
+        div.textContent = file.webkitRelativePath || file.name;
+        fileList.appendChild(div);
+      }
+    }
+
+    fileInput.addEventListener('change', () => {
+      displayFiles(fileInput.files);
+    });
+
+    folderInput.addEventListener('change', () => {
+      displayFiles(folderInput.files);
+    });
+
+    const submitButton = form.querySelector('button[type="submit"]');
+    
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      submitButton.disabled = true;
+      submitButton.textContent = 'Uploading...';
+      
+      const files = fileInput.files.length ? fileInput.files : folderInput.files;
+
+      if (!files.length) {
+        showMessage('Please select files or a folder to upload.', 'error');
+        submitButton.disabled = false;
+        submitButton.textContent = 'Upload';
+        return;
+      }
+
+      const formData = new FormData();
+      for (const file of files) {
+        formData.append('files', file, file.webkitRelativePath || file.name);
+      }
+
+      try {
+        // Get the authentication token from localStorage
+        const token = localStorage.getItem('token');
+        if (!token) {
+          showMessage('Please login first.', 'error');
+          submitButton.disabled = false;
+          submitButton.textContent = 'Upload';
+          return;
+        }
+
+        const response = await fetch('/upload', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          const message = `${result.message}\nFiles: ${result.files.join(', ')}`;
+          showMessage(message, 'success');
+          // Clear the form after successful upload
+          form.reset();
+          fileList.innerHTML = '';
+        } else {
+          showMessage(result.detail || 'Upload failed.', 'error');
+        }
+      } catch (err) {
+        console.error('Upload error:', err);
+        showMessage('An error occurred during upload.', 'error');
+      } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Upload';
+      }
+    });
+
+    function showMessage(text, type) {
+      message.textContent = text;
+      message.className = type;
+      message.style.display = 'block';
+    }
+  </script>
+</body>
+</html>
