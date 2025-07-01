@@ -16,3 +16,4 @@ pydantic[email]
 python-multipart
 razorpay
 msgpack[accelerated]
+pydub

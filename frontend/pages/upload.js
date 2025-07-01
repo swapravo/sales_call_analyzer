@@ -60,6 +60,9 @@ export default function Upload() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/upload`, {
         method: 'POST',
         body: formData,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       });
 
       const result = await res.json();
