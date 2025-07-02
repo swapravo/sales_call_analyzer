@@ -6,24 +6,24 @@ import msgpack
 import pickle
 import json
 import os
-
+ 
 from .audio_db import add_audio_file, add_audio_metadata, get_audio_by_id
 
-#FLASK_TRANSCRIBE_URL = "http://13.202.147.27:8001/transcribe"
-#FLASK_STATUS_URL = "http://13.202.147.27:8001/status"
-FLASK_TRANSCRIBE_URL = "http://0.0.0.0:8001/transcribe"
-FLASK_STATUS_URL = "http://0.0.0.0:8001/status"
+#STT_TRANSCRIPTION_URL = "http://13.202.147.27:8001/transcribe"
+#STT_STATUS_URL = "http://13.202.147.27:8001/status"
+STT_TRANSCRIPTION_URL = "http://0.0.0.0:8002/transcribe"
+STT_STATUS_URL = "http://0.0.0.0:8002/status"
 DOWNLOADED_FOLDER = "uploads"
 SUPPORTED_AUDIO_EXTENSIONS = {
     ".aac", ".aiff", ".flac", ".m4a", ".mp3", ".mp4", ".ogg", ".opus", ".wav", ".webm"
 }
 
 # Upload audio file and return job_id
-def send_file_to_flask(file_path: str):
+def send_file_to_stt_api(file_path: str):
     with open(file_path, 'rb') as audio:
         files = {'audio': (os.path.basename(file_path), audio)}
         try:
-            response = requests.post(FLASK_TRANSCRIBE_URL, files=files)
+            response = requests.post(STT_TRANSCRIPTION_URL, files=files)
             if response.status_code == 202:
                 job_id = response.json().get("job_id")
                 print(f"[{file_path}] 🚀 Job submitted. ID: {job_id}")
@@ -38,7 +38,7 @@ def poll_job_status(job_id: str, max_attempts: int = 10, delay_sec: int = 60):
     print(f"[{job_id}] ⏳ Starting polling for up to {max_attempts} minutes...")
     for attempt in range(1, max_attempts + 1):
         try:
-            response = requests.get(f"{FLASK_STATUS_URL}/{job_id}", headers={"Accept": "application/x-msgpack"})
+            response = requests.get(f"{STT_STATUS_URL}/{job_id}", headers={"Accept": "application/x-msgpack"})
             if response.status_code == 200:
                 decoded = msgpack.unpackb(response.content, raw=False)
 
@@ -110,7 +110,7 @@ def process_audio_files(file_ids, table_uuid):
                 f.write(file_content)
 
             # Process the file
-            job_id = send_file_to_flask(temp_path)
+            job_id = send_file_to_stt_api(temp_path)
             if job_id:
                 result = poll_job_status(job_id)
                 if result:

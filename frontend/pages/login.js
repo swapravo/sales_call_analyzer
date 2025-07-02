@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 
 export default function Login() {
   const [form, setForm] = useState({ username: '', password: '' });
@@ -66,9 +67,9 @@ export default function Login() {
                 className="w-full px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-600 transition duration-200"
               />
               <div className="flex justify-end mt-1">
-                <a href="/forgot-password" className="text-sm text-indigo-600 hover:text-indigo-800 transition duration-200">
+                <Link href="/forgot-password" className="text-sm text-indigo-600 hover:text-indigo-800 transition duration-200">
                   Forgot password?
-                </a>
+                </Link>
               </div>
             </div>
             
@@ -90,10 +91,10 @@ export default function Login() {
           
           <div className="mt-6 text-center">
             <p className="text-gray-600">
-              Don't have an account?{' '}
-              <a href="/signup" className="font-medium text-indigo-600 hover:text-indigo-800 transition duration-200">
+              Don&apos;t have an account?{' '}
+              <Link href="/signup" className="font-medium text-indigo-600 hover:text-indigo-800 transition duration-200">
                 Sign up
-              </a>
+              </Link>
             </p>
           </div>
         </div>

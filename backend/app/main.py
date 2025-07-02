@@ -16,7 +16,7 @@ import base64
 from dotenv import load_dotenv
 
 from . import models, schemas, crud, auth, deps, profile_db
-from .audio_db import DB_PATH, fetch_audio_metadata_by_user, ANALYSIS_COLUMNS, add_audio_file, init_user_audio_table
+from .audio_db import fetch_audio_metadata_by_user, ANALYSIS_COLUMNS, add_audio_file, init_user_audio_table
 from .audio_tasks import process_audio_files_task
 from .audio_utils import get_audio_duration, SUPPORTED_AUDIO_EXTENSIONS
 
