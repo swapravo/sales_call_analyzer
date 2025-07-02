@@ -5,8 +5,18 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
 from dotenv import load_dotenv
 import uuid
+from .docker_utils import is_docker
 
 load_dotenv()
+
+print("AUDIO_DB_PATH_LOCAL:", os.getenv("AUDIO_DB_PATH_LOCAL"))
+print("is_docker():", is_docker())
+
+# Determine audio DB path
+AUDIO_DB_PATH = os.getenv('AUDIO_DB_PATH_DOCKER') if is_docker() else os.getenv('AUDIO_DB_PATH_LOCAL', './audio.db')
+DATABASE_URL = f"sqlite:///{AUDIO_DB_PATH}"
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Create base for audio database
 Base = declarative_base()
@@ -43,11 +53,6 @@ ANALYSIS_COLUMNS = [
     "objection_handling_score",
     "overall_score"
 ]
-
-DB_PATH = "./audio.db"
-DATABASE_URL = os.getenv("AUDIO_DATABASE_URL", f"sqlite:///{DB_PATH}")
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_user_audio_table(table_uuid: str) -> Table:
     """Get or create a user-specific audio table."""
@@ -249,3 +254,7 @@ def fetch_audio_metadata_by_user(table_uuid: str, page_number: int = 1, items_pe
         return 0, []
     finally:
         db.close()
+
+print("Resolved AUDIO_DB_PATH:", AUDIO_DB_PATH)
+print("CWD:", os.getcwd())
+print("audio.db exists:", os.path.exists(AUDIO_DB_PATH))

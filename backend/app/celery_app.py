@@ -1,14 +1,14 @@
+import os
 from celery import Celery
+from .docker_utils import is_docker
 
-try:
-    celery = Celery(
-        'audio_tasks',
-        broker='redis://redis:6379/0',  # Use Docker service name
-        backend='redis://redis:6379/0'
-    )
-except Exception as e:
-    celery = Celery(
+if is_docker():
+    redis_host = 'redis'  # Docker service name
+else:
+    redis_host = 'localhost'
+
+celery = Celery(
     'audio_tasks',
-    broker='redis://localhost:6379/0',  # Use local redis name
-    backend='redis://localhost:6379/0'
+    broker=f'redis://{redis_host}:6379/0',
+    backend=f'redis://{redis_host}:6379/0'
 )

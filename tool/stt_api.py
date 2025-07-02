@@ -4,7 +4,7 @@ from io import BytesIO
 import threading
 import uuid
 import os
-from openai import OpenAI
+from openai import OpenAI, OpenAIError
 import requests
 import re
 from elevenlabs import ElevenLabs
@@ -65,12 +65,18 @@ def group_chunks_by_size(chunks: list[str], max_chars: int = 1500) -> list[str]:
 
 def request_openai(prompt: str, model: str = "gpt-4", temperature: float = 0.3) -> str:
     """Handles OpenAI chat completion requests."""
-    response = openai_client.chat.completions.create(
-        model=model,
-        messages=[{"role": "user", "content": prompt}],
-        temperature=temperature
-    )
-    return response.choices[0].message.content.strip()
+    try:
+        response = openai_client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=temperature
+        )
+        return response.choices[0].message.content.strip()
+    except OpenAIError as e:
+        # Return a structured error
+        return {"error": str(e), "type": "openai_error"}
+    except Exception as e:
+        return {"error": str(e), "type": "general_error"}
 
 
 # ----------------------- NLP PROCESSING -----------------------

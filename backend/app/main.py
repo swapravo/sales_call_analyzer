@@ -193,7 +193,8 @@ async def upload_files(
         # Clean up all temporary files after successful processing
         for temp_file in temp_files:
             try:
-                os.remove(temp_file)
+                if os.path.exists(temp_file):
+                    os.remove(temp_file)
             except Exception as e:
                 print(f"Warning: Failed to remove temporary file {temp_file}: {str(e)}")
 
@@ -211,7 +212,8 @@ async def upload_files(
         # Clean up any remaining files if an error occurred
         for temp_file in temp_files:
             try:
-                os.remove(temp_file)
+                if os.path.exists(temp_file):
+                    os.remove(temp_file)
             except Exception as e:
                 print(f"Warning: Failed to remove temporary file {temp_file}: {str(e)}")
         raise he
@@ -219,7 +221,8 @@ async def upload_files(
         # Clean up any remaining files if an error occurred
         for temp_file in temp_files:
             try:
-                os.remove(temp_file)
+                if os.path.exists(temp_file):
+                    os.remove(temp_file)
             except Exception as e1:
                 print(f"Warning: Failed to remove temporary file {temp_file}: {str(e1)}")
         print(f"Upload error: {str(e0)}")

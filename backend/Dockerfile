@@ -22,6 +22,9 @@ RUN mkdir -p /app/db
 COPY audio.db /app/db/
 COPY profiles.db /app/db/
 
+# Copy uploads directory
+COPY uploads ./uploads
+
 # Copy .env file
 COPY .env ./
 
