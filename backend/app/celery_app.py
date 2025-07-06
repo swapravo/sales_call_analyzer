@@ -1,8 +1,7 @@
 import os
 from celery import Celery
-from .docker_utils import is_docker
 
-if is_docker():
+if os.getenv('IS_DOCKER') == '1':
     redis_host = 'redis'  # Docker service name
 else:
     redis_host = 'localhost'

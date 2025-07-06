@@ -1,10 +1,10 @@
-version: '3.8'
-
 services:
   redis:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+    env_file:
+      - ./backend/.env
 
   backend:
     build:
@@ -17,6 +17,8 @@ services:
       - redis
     environment:
       - REDIS_URL=redis://redis:6379/0
+    env_file:
+      - ./backend/.env
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001", "--workers", "4"]
 
   celery:
@@ -29,17 +31,19 @@ services:
       - backend
     environment:
       - REDIS_URL=redis://redis:6379/0
+    env_file:
+      - ./backend/.env
     command: ["celery", "-A", "app.audio_tasks", "worker", "--loglevel=info", "--concurrency=1"]
 
   frontend:
     build:
       context: ./frontend
-    volumes:
-      - ./frontend:/app
     ports:
       - "3000:3000"
     depends_on:
       - backend
+    env_file:
+      - ./frontend/.env.local
 
   stt:
     build:
@@ -48,6 +52,8 @@ services:
       - ./tool:/app
     ports:
       - "8002:8002"
+    env_file:
+      - ./tool/.env
 
 volumes:
   backend_db_data:

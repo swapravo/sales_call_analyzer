@@ -5,15 +5,13 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
 from dotenv import load_dotenv
 import uuid
-from .docker_utils import is_docker
 
 load_dotenv()
 
 print("AUDIO_DB_PATH_LOCAL:", os.getenv("AUDIO_DB_PATH_LOCAL"))
-print("is_docker():", is_docker())
 
 # Determine audio DB path
-AUDIO_DB_PATH = os.getenv('AUDIO_DB_PATH_DOCKER') if is_docker() else os.getenv('AUDIO_DB_PATH_LOCAL', './audio.db')
+AUDIO_DB_PATH = os.getenv('AUDIO_DB_PATH_DOCKER') if os.getenv('IS_DOCKER') == '1' else os.getenv('AUDIO_DB_PATH_LOCAL', './audio.db')
 DATABASE_URL = f"sqlite:///{AUDIO_DB_PATH}"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

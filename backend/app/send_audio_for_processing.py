@@ -11,8 +11,8 @@ from .audio_db import add_audio_file, add_audio_metadata, get_audio_by_id
 
 #STT_TRANSCRIPTION_URL = "http://13.202.147.27:8001/transcribe"
 #STT_STATUS_URL = "http://13.202.147.27:8001/status"
-STT_TRANSCRIPTION_URL = "http://0.0.0.0:8002/transcribe"
-STT_STATUS_URL = "http://0.0.0.0:8002/status"
+STT_TRANSCRIPTION_URL = "http://stt:8002/transcribe"
+STT_STATUS_URL = "http://stt:8002/status"
 DOWNLOADED_FOLDER = "uploads"
 SUPPORTED_AUDIO_EXTENSIONS = {
     ".aac", ".aiff", ".flac", ".m4a", ".mp3", ".mp4", ".ogg", ".opus", ".wav", ".webm"
