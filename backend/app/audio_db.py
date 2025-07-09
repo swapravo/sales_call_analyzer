@@ -117,11 +117,12 @@ def add_audio_file(file_path: str, file_name: str, table_uuid: str) -> int:
     Returns:
         int: file_id is the ID of the new record if successful, else -1
     """
+    print(f"add_audio_file: Saving {file_name} from {file_path} to table {table_uuid}")
     try:
-        # Read the audio file
         with open(file_path, 'rb') as f:
             file_content = f.read()
-            
+        print(f"Read {len(file_content)} bytes from {file_path}")
+        
         # Create new audio record
         db = SessionLocal()
         table = get_user_audio_table(table_uuid)
@@ -189,6 +190,7 @@ def get_audio_by_id(audio_id: int, table_uuid: str) -> tuple:
     Returns:
         tuple: (name, file_content) or (None, None) if not found
     """
+    print(f"get_audio_by_id: Fetching id={audio_id} from table {table_uuid}")
     try:
         db = SessionLocal()
         table = get_user_audio_table(table_uuid)
@@ -198,8 +200,10 @@ def get_audio_by_id(audio_id: int, table_uuid: str) -> tuple:
         ).first()
         
         if not result:
+            print(f"get_audio_by_id: No result for id={audio_id}")
             return None, None
             
+        print(f"get_audio_by_id: Found file {result.name} (size: {len(result.file)} bytes)")
         return result.name, result.file
     except Exception as e:
         print(f"Error getting audio by ID: {str(e)}")

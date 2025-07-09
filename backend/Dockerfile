@@ -32,4 +32,4 @@ COPY .env ./
 EXPOSE 8001
 
 # Default command (can be overridden in docker-compose)
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001", "--workers", "4"]
+CMD ["uvicorn", "app.main:app", "--host", "backend", "--port", "8001", "--workers", "2"]

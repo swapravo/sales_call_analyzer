@@ -19,7 +19,7 @@ services:
       - REDIS_URL=redis://redis:6379/0
     env_file:
       - ./backend/.env
-    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001", "--workers", "4"]
+    command: ["uvicorn", "app.main:app", "--host", "backend", "--port", "8001", "--workers", "2"]
 
   celery:
     build:

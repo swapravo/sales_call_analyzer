@@ -171,12 +171,17 @@ async def upload_files(
                     detail=f"Invalid or corrupted audio file: {relative_path}. Please ensure the file is a valid audio file."
                 )
 
+            print(f"Saving file: {relative_path} to {destination_path}")
+            print(f"Checking duration for: {destination_path}")
+            print(f"Duration: {duration}")
+
             # Add file to database and get the ID
             file_id = add_audio_file(
                 file_path=destination_path,
                 file_name=relative_path,
                 table_uuid=current_user.table_uuid
             )
+            print(f"add_audio_file returned file_id: {file_id} for {relative_path}")
 
             if not file_id:
                 # Clean up the file if database insertion fails
@@ -202,6 +207,8 @@ async def upload_files(
         if saved_file_ids:
             # TODO: deduct credits
             process_audio_files_task.delay(saved_file_ids, current_user.table_uuid)
+
+        print(f"Saved file IDs: {saved_file_ids}")
 
         return {
             "message": f"Successfully uploaded {len(saved_files)} files",

@@ -12,4 +12,4 @@ COPY . .
 
 EXPOSE 8002
 
-CMD ["uvicorn", "stt_api:app", "--host", "0.0.0.0", "--port", "8002"]
+CMD ["uvicorn", "stt_api:app", "--host", "stt", "--port", "8002"]

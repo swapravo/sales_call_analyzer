@@ -234,4 +234,4 @@ def check_status(job_id: str):
 
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run("stt_api:app", host="0.0.0.0", port=8002, reload=True)
+    uvicorn.run("stt_api:app", host="stt", port=8002, reload=True)

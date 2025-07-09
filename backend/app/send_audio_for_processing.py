@@ -94,9 +94,10 @@ def parse_transcription_response(response: dict) -> dict:
 
 def process_audio_files(file_ids, table_uuid):
     for file_id in file_ids:
-        # Get file information from database
+        print(f"Processing file_id: {file_id}")
         result = get_audio_by_id(file_id, table_uuid)
-        
+        print(f"get_audio_by_id({file_id}, {table_uuid})")
+
         if not result:
             print(f"[{file_id}] ❌ File not found in database")
             continue
@@ -105,6 +106,7 @@ def process_audio_files(file_ids, table_uuid):
         
         # Create a temporary file
         temp_path = os.path.join(DOWNLOADED_FOLDER, f"temp_{file_id}_{filename}")
+        print(f"Writing temp file: {temp_path} (size: {len(file_content) if file_content else 0} bytes)")
         try:
             with open(temp_path, 'wb') as f:
                 f.write(file_content)
@@ -127,6 +129,7 @@ def process_audio_files(file_ids, table_uuid):
         finally:
             # Clean up temporary file
             try:
+                print(f"Attempting to remove temp file: {temp_path}")
                 os.remove(temp_path)
             except Exception as e:
                 print(f"[{file_id}] ⚠️ Failed to remove temporary file: {e}")
