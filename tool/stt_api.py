@@ -49,7 +49,7 @@ def split_by_speaker_sentences(text: str) -> list[str]:
     return chunks
 
 
-def group_chunks_by_size(chunks: list[str], max_chars: int = 1500) -> list[str]:
+def group_chunks_by_size(chunks: list[str], max_chars: int = 2500) -> list[str]:
     """Groups sentence chunks under a character limit."""
     grouped, buffer = [], ""
     for chunk in chunks:
@@ -73,10 +73,10 @@ def request_openai(prompt: str, model: str = "gpt-4", temperature: float = 0.3) 
         )
         return response.choices[0].message.content.strip()
     except OpenAIError as e:
-        # Return a structured error
-        return {"error": str(e), "type": "openai_error"}
+        # Return error message as string
+        return f"Error: {str(e)}"
     except Exception as e:
-        return {"error": str(e), "type": "general_error"}
+        return f"Error: {str(e)}"
 
 
 # ----------------------- NLP PROCESSING -----------------------
@@ -95,6 +95,9 @@ def translate_hindi_to_english(hindi_text: str) -> str:
 
 def analyze_sales_call(transcript: str) -> str:
     content = request_openai(sales_call_analysis_prompt(transcript), model="gpt-4o")
+    # Check if content is an error message
+    if content.startswith("Error:"):
+        return content
     return content[8:-4]  # clean unwanted prefix/suffix
 
 
@@ -104,28 +107,38 @@ def format_transcription(words: list) -> str:
     speaker_map, speaker_count = {}, 1
     current_speaker = None
 
-    for word in words:
+    print("[DEBUG] format_transcription called with words:", words)
+    for idx, word in enumerate(words):
+        print(f"[DEBUG] Word {idx}: {word} (type: {type(word)})")
         if getattr(word, "type", None) not in ["word", "spacing"]:
+            print(f"[DEBUG] Skipping word {idx} due to type: {getattr(word, 'type', None)}")
             continue
 
         speaker_id = getattr(word, "speaker_id", None)
         text = getattr(word, "text", "")
+        print(f"[DEBUG] speaker_id: {speaker_id}, text: {text}")
 
         if speaker_id not in speaker_map:
             speaker_map[speaker_id] = f"Speaker {speaker_count}"
             speaker_count += 1
+        print(f"[DEBUG] speaker_map: {speaker_map}")
 
         if speaker_id == current_speaker:
             current_line.append(text)
         else:
             if current_line:
+                print(f"[DEBUG] Appending line: {speaker_map[current_speaker]}: {''.join(current_line).strip()}")
                 output.append(f"{speaker_map[current_speaker]}: {''.join(current_line).strip()}")
             current_line, current_speaker = [text], speaker_id
 
     if current_line:
+        print(f"[DEBUG] Appending final line: {speaker_map[current_speaker]}: {''.join(current_line).strip()}")
         output.append(f"{speaker_map[current_speaker]}: {''.join(current_line).strip()}")
 
-    return '\n'.join(output)
+    print("[DEBUG] Final output list:", output)
+    result = '\n'.join(output)
+    print("[DEBUG] Final result string:", result)
+    return result
 
 
 def generate_combined_output(raw_convo: str) -> dict:
@@ -134,12 +147,16 @@ def generate_combined_output(raw_convo: str) -> dict:
     translated = translate_hindi_to_english(corrected)
     analysis_str = analyze_sales_call(translated)
 
-    # Parse the analysis JSON string into a proper Python dictionary
-    try:
-        analysis = json.loads(analysis_str)
-    except json.JSONDecodeError:
-        # If parsing fails, return the raw string
-        analysis = {"error": "Failed to parse analysis JSON", "raw_analysis": analysis_str}
+    # Check if analysis_str is an error message
+    if analysis_str.startswith("Error:"):
+        analysis = {"error": analysis_str}
+    else:
+        # Parse the analysis JSON string into a proper Python dictionary
+        try:
+            analysis = json.loads(analysis_str)
+        except json.JSONDecodeError:
+            # If parsing fails, return the raw string
+            analysis = {"error": "Failed to parse analysis JSON", "raw_analysis": analysis_str}
 
     # Create a flat dictionary with all fields
     return_val = {

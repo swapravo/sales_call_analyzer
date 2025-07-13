@@ -34,7 +34,7 @@ def send_file_to_stt_api(file_path: str):
             print(f"[{file_path}] ❌ Request error: {e}")
     return None
 
-def poll_job_status(job_id: str, max_attempts: int = 20, delay_sec: int = 60):
+def poll_job_status(job_id: str, max_attempts: int = 30, delay_sec: int = 60):
     print(f"[{job_id}] ⏳ Starting polling for up to {max_attempts} minutes...")
     for attempt in range(1, max_attempts + 1):
         try:
