@@ -5,6 +5,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
 from dotenv import load_dotenv
 import uuid
+import json
 
 load_dotenv()
 
@@ -164,7 +165,13 @@ def add_audio_metadata(audio_id: int, table_uuid: str, metadata: dict) -> bool:
         update_data = {}
         for key, value in metadata.items():
             if key in ANALYSIS_COLUMNS:
-                update_data[key] = value
+                # Convert dicts/lists to JSON strings
+                if isinstance(value, (dict, list)):
+                    update_data[key] = json.dumps(value)
+                elif value is None or isinstance(value, (str, int)):
+                    update_data[key] = value
+                else:
+                    update_data[key] = str(value)
         
         db.execute(
             table.update()
