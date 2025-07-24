@@ -26,6 +26,7 @@ __pycache__/
 /backend/.cache/
 /backend/.env
 /backend/tool/*
+/tool/venv/
 
 # =======================
 # Node.js / Next.js (frontend/)

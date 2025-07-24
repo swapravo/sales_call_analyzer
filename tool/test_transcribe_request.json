@@ -1,0 +1,12 @@
+{
+  "openai_api_key": "sk-EXAMPLE-OPENAI-KEY",
+  "elevenlabs_api_key": "el-EXAMPLE-ELEVENLABS-KEY",
+  "prompts": {
+    "pitch_followed": "Evaluate if the salesperson followed the pitch structure.",
+    "confidence": "Assess the confidence level in responses.",
+    "tonality": "Analyze the tone for professionalism and empathy.",
+    "energy": "Comment on the enthusiasm and energy throughout the call.",
+    "objection_handling": "Review how objections were addressed and resolved."
+  },
+  "audio": "<BASE64_AUDIO_STRING_HERE>"
+} 
